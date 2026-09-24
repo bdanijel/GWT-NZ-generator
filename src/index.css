@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-serif-vintage {
+    font-family: 'Cinzel', Georgia, serif;
+  }
+
+  .font-flavor {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(12, 31, 26, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 151, 56, 0.35);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 151, 56, 0.6);
+}
+
+/* Wood and parchment textures with css gradients */
+.parchment-card {
+  background: linear-gradient(145deg, #1b352e 0%, #132722 100%);
+  border: 1px solid rgba(201, 151, 56, 0.25);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #f5d77f 0%, #c99738 50%, #9a6f1e 100%);
+}
+
+.gold-border {
+  border-color: rgba(201, 151, 56, 0.4);
+}

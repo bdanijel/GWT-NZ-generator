@@ -1,0 +1,6 @@
+{
+  "name": "Great Western Trail: New Zealand Companion & Scorer",
+  "description": "Generator početnog setup-a, interaktivni kalkulator poena (Scoring Pad) i pravila za društvenu igru Great Western Trail: New Zealand.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
