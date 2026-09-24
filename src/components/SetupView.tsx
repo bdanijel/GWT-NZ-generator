@@ -181,22 +181,41 @@ ${setup.playersStartingInfo.map((p) => `• ${p.turnOrder}. ${p.name} (${p.color
         <div className="mt-6 pt-6 border-t border-emerald-800/40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Player Count */}
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold text-amber-200/80 uppercase tracking-wider block mb-2">
-              {lang === 'sr' ? 'Broj Igrača' : 'Player Count'}
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-semibold text-amber-200/80 uppercase tracking-wider block">
+                {lang === 'sr' ? 'Broj Igrača' : 'Player Count'}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  const allKeys = ['bonusSets', 'harbourmasters', 'wellington', 'sheepMarket', 'players', 'buildings'];
+                  const allDone = allKeys.every((k) => checkedSteps[k]);
+                  const nextChecked: Record<string, boolean> = {};
+                  allKeys.forEach((k) => {
+                    nextChecked[k] = !allDone;
+                  });
+                  setCheckedSteps(nextChecked);
+                }}
+                className="text-[11px] text-amber-300 hover:text-amber-200 underline cursor-pointer"
+              >
+                {Object.values(checkedSteps).filter(Boolean).length >= 5
+                  ? (lang === 'sr' ? 'Poništi sve oznake' : 'Uncheck all')
+                  : (lang === 'sr' ? 'Označi sve završeno' : 'Check all')}
+              </button>
+            </div>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { count: 1, label: lang === 'sr' ? '1 (Solo Sarah)' : '1 (Solo Sarah)' },
-                { count: 2, label: '2 Igrača' },
-                { count: 3, label: '3 Igrača' },
-                { count: 4, label: '4 Igrača' },
+                { count: 1, label: lang === 'sr' ? '1 (Solo)' : '1 (Solo)' },
+                { count: 2, label: lang === 'sr' ? '2 Igrača' : '2 Players' },
+                { count: 3, label: lang === 'sr' ? '3 Igrača' : '3 Players' },
+                { count: 4, label: lang === 'sr' ? '4 Igrača' : '4 Players' },
               ].map((item) => (
                 <button
                   key={item.count}
                   onClick={() => handlePlayerCountChange(item.count as 1 | 2 | 3 | 4)}
-                  className={`py-2 px-2 text-center rounded-xl text-xs sm:text-sm font-semibold transition-all border cursor-pointer ${
+                  className={`min-h-[44px] py-2 px-1 sm:px-2 text-center rounded-xl text-xs sm:text-sm font-semibold transition-all border cursor-pointer ${
                     playerCount === item.count
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm font-extrabold'
                       : 'bg-[#152e27] border-emerald-900/60 text-emerald-300/80 hover:bg-[#1c3e34]'
                   }`}
                 >

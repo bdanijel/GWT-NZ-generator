@@ -181,13 +181,52 @@ export default function App() {
       </header>
 
       {/* MAIN BODY VIEW */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-16">
         {activeTab === 'setup' && <SetupView lang={lang} onNavigateToScoring={() => setActiveTab('scoring')} />}
         {activeTab === 'scoring' && <ScoringCalculatorView lang={lang} />}
         {activeTab === 'rules' && <RulesEncyclopedia lang={lang} />}
         {activeTab === 'solo' && <SoloSarahView lang={lang} />}
         {activeTab === 'history' && <GameHistoryView lang={lang} />}
       </main>
+
+      {/* MOBILE / TABLET THUMB-FRIENDLY BOTTOM NAVIGATION BAR */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#091713]/95 backdrop-blur-xl border-t border-[#c99738]/30 shadow-2xl px-1.5 py-1.5 flex justify-around items-center safe-area-pb"
+      >
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id as any);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer min-h-[48px] ${
+                isActive
+                  ? 'bg-amber-400 text-[#0c1f1a] font-bold shadow-md'
+                  : 'text-emerald-300/70 hover:text-emerald-100 hover:bg-[#132c25]'
+              }`}
+            >
+              <Icon className={`w-5 h-5 ${isActive ? 'text-[#0c1f1a]' : 'text-emerald-300'}`} />
+              <span className="text-[10px] mt-0.5 font-serif-vintage tracking-tight truncate max-w-[64px]">
+                {item.id === 'setup'
+                  ? (lang === 'sr' ? 'Setup' : 'Setup')
+                  : item.id === 'scoring'
+                  ? (lang === 'sr' ? 'Poeni' : 'Score')
+                  : item.id === 'rules'
+                  ? (lang === 'sr' ? 'Pravila' : 'Rules')
+                  : item.id === 'solo'
+                  ? (lang === 'sr' ? 'Solo' : 'Solo')
+                  : (lang === 'sr' ? 'Istorija' : 'History')}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* FOOTER */}
       <footer className="mt-auto bg-[#071410] border-t border-emerald-900/60 py-8 text-xs text-emerald-400/60">

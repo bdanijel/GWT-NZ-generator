@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overscroll-behavior-y: none;
   }
 
   h1, h2, h3, h4, .font-serif-vintage {
@@ -12,6 +18,11 @@
   .font-flavor {
     font-family: 'Playfair Display', Georgia, serif;
   }
+}
+
+/* Safe area for mobile notch & home indicator */
+.safe-area-pb {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
 /* Custom scrollbar */

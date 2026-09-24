@@ -237,6 +237,89 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
     calculatedTotal: calculatePlayerTotal(p),
   })).sort((a, b) => b.calculatedTotal - a.calculatedTotal);
 
+  // Helper component for touch-friendly mobile/tablet stepper
+  const TouchStepper: React.FC<{
+    value: number;
+    onChange: (val: number) => void;
+    min?: number;
+    max?: number;
+    step?: number;
+    quickSteps?: number[];
+    unit?: string;
+    allowNegative?: boolean;
+  }> = ({ value, onChange, min = 0, max = 999, step = 1, quickSteps = [2, 5], unit, allowNegative = false }) => {
+    const effectiveMin = allowNegative ? -999 : min;
+
+    const handleStep = (delta: number) => {
+      const next = Math.min(max, Math.max(effectiveMin, (value || 0) + delta));
+      onChange(next);
+    };
+
+    return (
+      <div className="space-y-2 w-full">
+        <div className="flex items-center gap-1.5 w-full">
+          <button
+            type="button"
+            onClick={() => handleStep(-step)}
+            className="w-10 h-10 rounded-xl bg-[#10241e] hover:bg-[#16362e] border border-emerald-700/60 text-amber-300 font-bold text-lg flex items-center justify-center active:scale-95 transition-transform cursor-pointer shrink-0 select-none shadow-sm"
+            aria-label="Smanji za 1"
+          >
+            -
+          </button>
+
+          <div className="relative flex-1">
+            <input
+              type="number"
+              value={value}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value);
+                onChange(isNaN(parsed) ? 0 : Math.min(max, Math.max(effectiveMin, parsed)));
+              }}
+              className="w-full h-10 bg-[#10241e] border border-emerald-700/60 rounded-xl px-2 text-center font-bold text-amber-200 text-base focus:outline-none focus:border-amber-400 select-all"
+            />
+            {unit && (
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 font-semibold pointer-events-none">
+                {unit}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleStep(step)}
+            className="w-10 h-10 rounded-xl bg-[#10241e] hover:bg-[#16362e] border border-emerald-700/60 text-amber-300 font-bold text-lg flex items-center justify-center active:scale-95 transition-transform cursor-pointer shrink-0 select-none shadow-sm"
+            aria-label="Povećaj za 1"
+          >
+            +
+          </button>
+        </div>
+
+        {quickSteps && quickSteps.length > 0 && (
+          <div className="flex items-center justify-end gap-1.5">
+            {quickSteps.map((qs) => (
+              <button
+                key={qs}
+                type="button"
+                onClick={() => handleStep(qs)}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#142e26] hover:bg-[#1b3d33] border border-emerald-700/50 text-emerald-300 active:scale-95 transition-transform cursor-pointer"
+              >
+                +{qs}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handlePrevPlayer = () => {
+    setActivePlayerIndex((prev) => (prev > 0 ? prev - 1 : players.length - 1));
+  };
+
+  const handleNextPlayer = () => {
+    setActivePlayerIndex((prev) => (prev < players.length - 1 ? prev + 1 : 0));
+  };
+
   const activePlayer = players[activePlayerIndex] || players[0];
 
   const getColorClasses = (color: PlayerColor) => {
@@ -444,17 +527,37 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
       <div className="parchment-card rounded-2xl p-6 border border-[#c99738]/40 shadow-xl space-y-6">
         {/* Player Name & Color Editor */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-emerald-800/40">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Quick Mobile Prev Player */}
+            <button
+              type="button"
+              onClick={handlePrevPlayer}
+              className="sm:hidden w-10 h-10 rounded-xl bg-[#10241e] border border-emerald-700/60 text-amber-300 font-bold flex items-center justify-center active:scale-95 transition-transform shrink-0"
+              aria-label="Prethodni igrač"
+            >
+              ‹
+            </button>
+
             <input
               type="text"
               value={activePlayer.name}
               onChange={(e) => updatePlayerField(activePlayerIndex, 'name', e.target.value)}
-              className="bg-[#10241e] border border-emerald-700/60 rounded-xl px-3.5 py-2 font-serif-vintage font-bold text-lg text-amber-200 focus:outline-none focus:border-amber-400 w-full sm:w-64"
+              className="bg-[#10241e] border border-emerald-700/60 rounded-xl px-3.5 py-2 font-serif-vintage font-bold text-lg text-amber-200 focus:outline-none focus:border-amber-400 flex-1 sm:w-64"
               placeholder="Ime igrača"
             />
 
+            {/* Quick Mobile Next Player */}
+            <button
+              type="button"
+              onClick={handleNextPlayer}
+              className="sm:hidden w-10 h-10 rounded-xl bg-[#10241e] border border-emerald-700/60 text-amber-300 font-bold flex items-center justify-center active:scale-95 transition-transform shrink-0"
+              aria-label="Sledeći igrač"
+            >
+              ›
+            </button>
+
             {/* Color Switcher */}
-            <div className="flex items-center gap-1.5 bg-[#10241e] p-1.5 rounded-xl border border-emerald-800/60">
+            <div className="hidden sm:flex items-center gap-1.5 bg-[#10241e] p-1.5 rounded-xl border border-emerald-800/60">
               {(['red', 'blue', 'green', 'yellow', 'black'] as PlayerColor[]).map((c) => (
                 <button
                   key={c}
@@ -480,7 +583,7 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-[#10241e] px-4 py-2 rounded-xl border border-amber-500/40">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-3 bg-[#10241e] px-4 py-2 rounded-xl border border-amber-500/40">
             <span className="text-xs uppercase font-bold text-emerald-300">
               {lang === 'sr' ? 'Ukupno Poena:' : 'Total Score:'}
             </span>
@@ -493,7 +596,7 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
         {/* 12 OFFICIAL SCORING CATEGORIES GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* CAT 1: MONEY */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase flex items-center gap-1.5">
@@ -504,24 +607,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {Math.floor(Math.max(0, activePlayer.cat1_money) / 5)} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? '1 poen za svakih 5 funti (£) na kraju igre' : '1 VP for every 5 pounds (£)'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">{lang === 'sr' ? 'Funti:' : 'Pounds:'}</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat1_money}
-                onChange={(e) => updatePlayerField(activePlayerIndex, 'cat1_money', parseInt(e.target.value) || 0)}
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat1_money}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat1_money', val)}
+              unit="£"
+              quickSteps={[5, 10]}
+            />
           </div>
 
           {/* CAT 2: PRIVATE BUILDINGS */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -531,26 +630,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat2_privateBuildingsVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Zbir VP odštampanih na tvojim postavljenim zgradama' : 'Sum of VPs on placed private buildings'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat2_privateBuildingsVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat2_privateBuildingsVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat2_privateBuildingsVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat2_privateBuildingsVP', val)}
+              unit="VP"
+              quickSteps={[2, 5]}
+            />
           </div>
 
           {/* CAT 3: TRADING POSTS */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -560,27 +653,23 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat3_tradingPostsVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr'
                   ? 'Grbovi stanica (lokalne, strane, vuna) -8 VP za polje 0, susedni bonusi'
                   : 'Trading crests (local, foreign, wool) -8 VP per disc on 0, adjacent bonuses'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                value={activePlayer.cat3_tradingPostsVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat3_tradingPostsVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat3_tradingPostsVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat3_tradingPostsVP', val)}
+              unit="VP"
+              allowNegative={true}
+              quickSteps={[2, 5]}
+            />
           </div>
 
           {/* CAT 4: HARBOURS */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -590,26 +679,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat4_harboursVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Poeni sa malih i srednjih luka + 4 VP bonus za susedne male luke' : 'Small & medium harbours VPs + 4 VP pair bonuses'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat4_harboursVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat4_harboursVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat4_harboursVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat4_harboursVP', val)}
+              unit="VP"
+              quickSteps={[2, 4]}
+            />
           </div>
 
           {/* CAT 5: PATHFINDER TRACK */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase flex items-center gap-1.5">
@@ -620,18 +703,19 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat5_pathfinderVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Najveća dostignuta vrednost na stazi (0, 1, 2, 4, 7, 10, 15)' : 'Highest reached milestone (0, 1, 2, 4, 7, 10, 15)'}
               </p>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
               {[0, 1, 2, 4, 7, 10, 15].map((vp) => (
                 <button
                   key={vp}
+                  type="button"
                   onClick={() => updatePlayerField(activePlayerIndex, 'cat5_pathfinderVP', vp)}
-                  className={`flex-1 py-1 rounded text-xs font-bold cursor-pointer transition-all ${
+                  className={`min-h-[40px] rounded-lg text-xs font-bold cursor-pointer transition-all ${
                     activePlayer.cat5_pathfinderVP === vp
-                      ? 'bg-amber-400 text-[#0c1f1a]'
+                      ? 'bg-amber-400 text-[#0c1f1a] shadow-sm font-extrabold'
                       : 'bg-[#10241e] text-emerald-300 border border-emerald-800 hover:bg-[#16362e]'
                   }`}
                 >
@@ -642,7 +726,7 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
           </div>
 
           {/* CAT 6: HAZARDS & BONUS TILES */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -652,26 +736,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat6_hazardsAndBonusTilesVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Zbir poena sa sakupljenih nepogoda (2,3,4) i bonus pločica' : 'Sum of collected hazards (2, 3, 4 VP) and bonus tiles'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat6_hazardsAndBonusTilesVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat6_hazardsAndBonusTilesVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat6_hazardsAndBonusTilesVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat6_hazardsAndBonusTilesVP', val)}
+              unit="VP"
+              quickSteps={[2, 3, 4]}
+            />
           </div>
 
           {/* CAT 7: DECK SHEEP & BONUS CARDS */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase flex items-center gap-1.5">
@@ -682,26 +760,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat7_deckCardsVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Sve ovce i bonus karte sa VP u celom špilu (vučenje, ruka, odbačene)' : 'All cards with VP in full deck (draw, hand, discard)'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat7_deckCardsVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat7_deckCardsVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat7_deckCardsVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat7_deckCardsVP', val)}
+              unit="VP"
+              quickSteps={[2, 5]}
+            />
           </div>
 
           {/* CAT 8: OBJECTIVE CARDS */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -711,25 +783,21 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat8_objectiveCardsVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Ispunjeni ciljevi (+VP) minus neispunjeni ciljevi (-VP)' : 'Fulfilled (+VP) minus unfulfilled (-VP)'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">Net VP:</span>
-              <input
-                type="number"
-                value={activePlayer.cat8_objectiveCardsVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat8_objectiveCardsVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat8_objectiveCardsVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat8_objectiveCardsVP', val)}
+              unit="VP"
+              allowNegative={true}
+              quickSteps={[2, 5]}
+            />
           </div>
 
           {/* CAT 9: HARBOURMASTER TILES */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase flex items-center gap-1.5">
@@ -740,26 +808,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat9_harbourmastersVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? 'Krajnji VP zadaci sa osvojenih pločica lučkih kapetana' : 'Endgame VP conditions on claimed harbourmasters'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat9_harbourmastersVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat9_harbourmastersVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat9_harbourmastersVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat9_harbourmastersVP', val)}
+              unit="VP"
+              quickSteps={[2, 4]}
+            />
           </div>
 
           {/* CAT 10: HAND LIMIT DISC */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -769,30 +831,29 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat10_handLimitDiscVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? '3 VP ako je oslobođeno desno polje za limit karata sa tamnim uglovima' : '3 VP if right hand limit disc was cleared on board'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  updatePlayerField(activePlayerIndex, 'cat10_handLimitDiscVP', activePlayer.cat10_handLimitDiscVP === 3 ? 0 : 3)
-                }
-                className={`w-full py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                  activePlayer.cat10_handLimitDiscVP === 3
-                    ? 'bg-amber-400 text-[#0c1f1a] border-amber-300'
-                    : 'bg-[#10241e] text-emerald-300 border-emerald-800 hover:bg-[#16362e]'
-                }`}
-              >
-                {activePlayer.cat10_handLimitDiscVP === 3
-                  ? (lang === 'sr' ? '✓ Oslobođeno (+3 VP)' : '✓ Cleared (+3 VP)')
-                  : (lang === 'sr' ? 'Nije oslobođeno (0 VP)' : 'Not Cleared (0 VP)')}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() =>
+                updatePlayerField(activePlayerIndex, 'cat10_handLimitDiscVP', activePlayer.cat10_handLimitDiscVP === 3 ? 0 : 3)
+              }
+              className={`w-full min-h-[44px] py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center ${
+                activePlayer.cat10_handLimitDiscVP === 3
+                  ? 'bg-amber-400 text-[#0c1f1a] border-amber-300 font-extrabold shadow-sm'
+                  : 'bg-[#10241e] text-emerald-300 border-emerald-800 hover:bg-[#16362e]'
+              }`}
+            >
+              {activePlayer.cat10_handLimitDiscVP === 3
+                ? (lang === 'sr' ? '✓ Oslobođeno (+3 VP)' : '✓ Cleared (+3 VP)')
+                : (lang === 'sr' ? 'Nije oslobođeno (0 VP)' : 'Not Cleared (0 VP)')}
+            </button>
           </div>
 
           {/* CAT 11: 5TH SLOT WORKERS & STOREHOUSES */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
@@ -802,26 +863,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat11_workersAndStorehousesVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? '4 VP po radniku na 5. mestu u redu + 2 ili 4 VP za parove skladišta' : '4 VP per 5th slot worker + 2/4 VP per storehouse pairs'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-300">VP:</span>
-              <input
-                type="number"
-                min="0"
-                value={activePlayer.cat11_workersAndStorehousesVP}
-                onChange={(e) =>
-                  updatePlayerField(activePlayerIndex, 'cat11_workersAndStorehousesVP', parseInt(e.target.value) || 0)
-                }
-                className="w-full bg-[#10241e] border border-emerald-700/60 rounded-lg px-3 py-1.5 text-right font-bold text-amber-200 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+            <TouchStepper
+              value={activePlayer.cat11_workersAndStorehousesVP}
+              onChange={(val) => updatePlayerField(activePlayerIndex, 'cat11_workersAndStorehousesVP', val)}
+              unit="VP"
+              quickSteps={[2, 4]}
+            />
           </div>
 
           {/* CAT 12: END GAME TOKEN */}
-          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all">
+          <div className="bg-[#122822] p-4 rounded-xl border border-emerald-700/50 flex flex-col justify-between hover:border-amber-400/60 transition-all space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold text-amber-300 uppercase flex items-center gap-1.5">
@@ -832,33 +887,31 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
                   {activePlayer.cat12_endGameTokenVP} VP
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300/70 mb-3">
+              <p className="text-[11px] text-emerald-300/70">
                 {lang === 'sr' ? '5 VP za igrača koji je uzeo token berze bonus pločica i završio igru' : '5 VP for player holding bonus tiles market token'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  const currentVP = activePlayer.cat12_endGameTokenVP;
-                  // Only one player can hold the 5 VP token
-                  setPlayers((prev) =>
-                    prev.map((p, idx) => ({
-                      ...p,
-                      cat12_endGameTokenVP: idx === activePlayerIndex ? (currentVP === 5 ? 0 : 5) : 0,
-                    }))
-                  );
-                }}
-                className={`w-full py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                  activePlayer.cat12_endGameTokenVP === 5
-                    ? 'bg-amber-400 text-[#0c1f1a] border-amber-300'
-                    : 'bg-[#10241e] text-emerald-300 border-emerald-800 hover:bg-[#16362e]'
-                }`}
-              >
-                {activePlayer.cat12_endGameTokenVP === 5
-                  ? (lang === 'sr' ? '🏆 Poseduje Token (+5 VP)' : '🏆 Holds Token (+5 VP)')
-                  : (lang === 'sr' ? 'Nema token (0 VP)' : 'No Token (0 VP)')}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const currentVP = activePlayer.cat12_endGameTokenVP;
+                setPlayers((prev) =>
+                  prev.map((p, idx) => ({
+                    ...p,
+                    cat12_endGameTokenVP: idx === activePlayerIndex ? (currentVP === 5 ? 0 : 5) : 0,
+                  }))
+                );
+              }}
+              className={`w-full min-h-[44px] py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center ${
+                activePlayer.cat12_endGameTokenVP === 5
+                  ? 'bg-amber-400 text-[#0c1f1a] border-amber-300 font-extrabold shadow-sm'
+                  : 'bg-[#10241e] text-emerald-300 border-emerald-800 hover:bg-[#16362e]'
+              }`}
+            >
+              {activePlayer.cat12_endGameTokenVP === 5
+                ? (lang === 'sr' ? '🏆 Poseduje Token (+5 VP)' : '🏆 Holds Token (+5 VP)')
+                : (lang === 'sr' ? 'Nema token (0 VP)' : 'No Token (0 VP)')}
+            </button>
           </div>
         </div>
       </div>
@@ -874,18 +927,20 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto -mx-1 sm:mx-0">
+          <table className="w-full text-left text-xs border-collapse min-w-[500px]">
             <thead>
               <tr className="bg-[#10241e] border-b border-emerald-800/60 text-amber-200 uppercase">
-                <th className="p-3 font-serif-vintage">{lang === 'sr' ? 'Kategorija' : 'Category'}</th>
+                <th className="p-3 font-serif-vintage sticky left-0 bg-[#0d221c] z-20 border-r border-emerald-800/60 shadow-md min-w-[160px]">
+                  {lang === 'sr' ? 'Kategorija' : 'Category'}
+                </th>
                 {players.map((p) => {
                   const colors = getColorClasses(p.color);
                   return (
-                    <th key={p.id} className="p-3 text-center font-bold font-serif-vintage">
+                    <th key={p.id} className="p-3 text-center font-bold font-serif-vintage min-w-[100px]">
                       <div className="flex items-center justify-center gap-1.5">
                         <span className={`w-2.5 h-2.5 rounded-full ${colors.badge}`} />
-                        <span>{p.name}</span>
+                        <span className="truncate">{p.name}</span>
                       </div>
                     </th>
                   );
@@ -927,7 +982,7 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
 
                 return (
                   <tr key={cat.id} className="hover:bg-[#142e26] transition-colors">
-                    <td className="p-3 font-medium text-emerald-200">
+                    <td className="p-3 font-medium text-emerald-200 sticky left-0 bg-[#0c1f19] z-10 border-r border-emerald-800/60 shadow-md">
                       <span className="text-amber-400 font-bold mr-1.5">{idx + 1}.</span>
                       {lang === 'sr' ? cat.serbianName : cat.name}
                     </td>
@@ -942,7 +997,7 @@ export const ScoringCalculatorView: React.FC<ScoringCalculatorViewProps> = ({ la
 
               {/* TOTAL ROW */}
               <tr className="bg-[#0f241e] font-extrabold text-amber-300 text-sm border-t-2 border-[#c99738]/50">
-                <td className="p-4 font-serif-vintage uppercase tracking-wider">
+                <td className="p-4 font-serif-vintage uppercase tracking-wider sticky left-0 bg-[#0b1b15] z-10 border-r border-emerald-800/60 shadow-md">
                   {lang === 'sr' ? 'UKUPNO (TOTAL VP)' : 'TOTAL VP'}
                 </td>
                 {players.map((p, idx) => {
