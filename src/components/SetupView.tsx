@@ -38,15 +38,16 @@ import {
 
 interface SetupViewProps {
   lang: Language;
+  initialPlayerCount?: 1 | 2 | 3 | 4;
   onNavigateToScoring?: () => void;
 }
 
-export const SetupView: React.FC<SetupViewProps> = ({ lang }) => {
-  const [playerCount, setPlayerCount] = useState<1 | 2 | 3 | 4>(3);
+export const SetupView: React.FC<SetupViewProps> = ({ lang, initialPlayerCount, onNavigateToScoring }) => {
+  const [playerCount, setPlayerCount] = useState<1 | 2 | 3 | 4>(initialPlayerCount || 3);
   const [randomNeutral, setRandomNeutral] = useState<boolean>(false);
   const [randomPrivate, setRandomPrivate] = useState<boolean>(false);
   const [setup, setSetup] = useState<GameSetupResult>(() =>
-    generateGWTNZSetup(3, { randomNeutralBuildings: false, randomizePrivateBuildings: false })
+    generateGWTNZSetup(initialPlayerCount || 3, { randomNeutralBuildings: false, randomizePrivateBuildings: false })
   );
   const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);

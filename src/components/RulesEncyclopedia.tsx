@@ -34,16 +34,37 @@ import {
   Building,
   ArrowRight,
   TrendingUp,
+  Flag,
+  Trophy,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface RulesEncyclopediaProps {
   lang: Language;
+  initialSubtab?: string;
+  onNavigateToScoring?: () => void;
 }
 
-export const RulesEncyclopedia: React.FC<RulesEncyclopediaProps> = ({ lang }) => {
+export const RulesEncyclopedia: React.FC<RulesEncyclopediaProps> = ({
+  lang,
+  initialSubtab,
+  onNavigateToScoring,
+}) => {
   const [activeTab, setActiveTab] = useState<
-    'turn_structure' | 'wellington' | 'shearing' | 'breeds' | 'bonus_sets' | 'harbourmasters' | 'buildings'
-  >('turn_structure');
+    | 'turn_structure'
+    | 'wellington'
+    | 'endgame'
+    | 'shearing'
+    | 'breeds'
+    | 'bonus_sets'
+    | 'harbourmasters'
+    | 'buildings'
+  >(() => {
+    if (initialSubtab && ['turn_structure', 'wellington', 'endgame', 'shearing', 'breeds', 'bonus_sets', 'harbourmasters', 'buildings'].includes(initialSubtab)) {
+      return initialSubtab as any;
+    }
+    return 'turn_structure';
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -81,6 +102,7 @@ export const RulesEncyclopedia: React.FC<RulesEncyclopediaProps> = ({ lang }) =>
           {[
             { id: 'turn_structure', label: lang === 'sr' ? 'Struktura Poteza (A-B-C)' : 'Turn Structure (A-B-C)' },
             { id: 'wellington', label: lang === 'sr' ? '4 Wellington Podfaze' : '4 Wellington Subphases' },
+            { id: 'endgame', label: lang === 'sr' ? '🏁 Kraj Igre (Triger i Tok)' : '🏁 Game End (Trigger & Flow)' },
             { id: 'shearing', label: lang === 'sr' ? 'Striža Ovaca & Vuna' : 'Wool & Shearing Action' },
             { id: 'breeds', label: lang === 'sr' ? 'Katalog 10 Rasa Ovaca' : '10 Sheep Breeds' },
             { id: 'bonus_sets', label: lang === 'sr' ? '10 Bonus Setova Karata' : '10 Bonus Card Sets' },
@@ -265,6 +287,114 @@ export const RulesEncyclopedia: React.FC<RulesEncyclopediaProps> = ({ lang }) =>
                   ? 'Izaberi 1 od 2 pločice sa polja B i stavi na sledeće slobodno mesto u redu gde se nalazi token berze bonus pločica. Kada se red popuni, pomeri token u sledeći red duž strelice (može okinuti dopunu tržišta ovaca ili obrtanje neutralnih zgrada).'
                   : 'Pick 1 of 2 B tiles and place in bonus market row. Moving market token triggers sheep refill or flipping 4 neutral buildings.'}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* END OF THE GAME RULES & TRIGGER (STRANA 18) */}
+      {activeTab === 'endgame' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-[#17372d] to-[#102720] p-6 rounded-2xl border border-amber-500/40 shadow-lg">
+            <div className="flex items-center gap-2 text-amber-300 mb-1">
+              <Flag className="w-5 h-5" />
+              <span className="text-xs uppercase font-extrabold tracking-widest font-serif-vintage">
+                {lang === 'sr' ? 'Zvanična Pravila — Kraj Igre (Strana 18 Pravilnika)' : 'Official Rulebook — End of the Game (Page 18)'}
+              </span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold font-serif-vintage text-amber-100">
+              {lang === 'sr' ? 'Triger za Kraj Igre, Poslednji Potezi i Token za Kraj' : 'Game End Trigger, Final Turns & End-Game Token'}
+            </h3>
+            <p className="text-xs sm:text-sm text-emerald-200/80 mt-1 max-w-3xl">
+              {lang === 'sr'
+                ? 'Ovde je detaljno objašnjeno kako se tačno završava partija, ko ima pravo na završni potez, ko uzima token koji nosi +5 VP i kako se prelazi na završno računanje poena.'
+                : 'Detailed rules on how the match ends, who takes a final turn, who earns the +5 VP end-game token, and moving to final scoring.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Step 1 */}
+            <div className="parchment-card p-5 rounded-2xl border border-amber-500/50 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-800/50">
+                  <span className="w-8 h-8 rounded-xl bg-amber-400 text-[#0c1f1a] font-black flex items-center justify-center font-serif-vintage text-base">
+                    1
+                  </span>
+                  <span className="text-[11px] uppercase font-bold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded">
+                    {lang === 'sr' ? 'Šta je triger?' : 'The Trigger'}
+                  </span>
+                </div>
+                <h4 className="font-bold text-base text-amber-200 font-serif-vintage mt-2">
+                  {lang === 'sr' ? 'Poslednje polje berze' : 'Last market space'}
+                </h4>
+                <p className="text-xs text-emerald-200/85 leading-relaxed mt-2">
+                  {lang === 'sr'
+                    ? 'U Wellingtonu, tokom podfaze 4 (Predviđanje B), kada igrač postavi pločicu B na poslednje slobodno polje u redu berze pločica — na polje koje ima simbol kraja igre — partija se završava!'
+                    : 'In Wellington during subphase 4 (Foresight B), when a player places a B tile onto the final space of the bonus tile market (with the game end icon), the end of the game is triggered!'}
+                </p>
+                <div className="bg-[#10241e] p-2.5 rounded-xl border border-amber-500/30 text-xs text-amber-300/90 mt-3 font-semibold">
+                  🏆 {lang === 'sr' ? 'Igrač odmah uzima Token za kraj igre sa table i stavlja ga na svoju tablu (+5 VP u kategoriji 12).' : 'Player immediately takes the End-Game Token (+5 VP in category 12).'}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="parchment-card p-5 rounded-2xl border border-emerald-600/50 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-800/50">
+                  <span className="w-8 h-8 rounded-xl bg-emerald-500 text-[#0c1f1a] font-black flex items-center justify-center font-serif-vintage text-base">
+                    2
+                  </span>
+                  <span className="text-[11px] uppercase font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded">
+                    {lang === 'sr' ? 'Ko još igra?' : 'Final Turns'}
+                  </span>
+                </div>
+                <h4 className="font-bold text-base text-emerald-100 font-serif-vintage mt-2">
+                  {lang === 'sr' ? 'Tačno po 1 potez za ostale' : '1 final turn for others'}
+                </h4>
+                <p className="text-xs text-emerald-200/85 leading-relaxed mt-2">
+                  {lang === 'sr'
+                    ? 'Igrač koji je pokrenuo kraj igre (uzeo token) VIŠE NE IGRA. Svaki drugi igrač dobija tačno JEDAN poslednji potez u smeru kazaljke na satu, završavajući sa igračem sa desne strane onoga ko je pokrenuo kraj.'
+                    : 'The triggering player takes NO MORE TURNS. All other players take exactly ONE final turn in clockwise order, ending with the player immediately to their right.'}
+                </p>
+                <div className="bg-[#10241e] p-2.5 rounded-xl border border-emerald-700/40 text-xs text-emerald-200/90 mt-3">
+                  {lang === 'sr'
+                    ? 'Igrači u svom poslednjem potezu normalno pomeraju figuricu, mogu doći u Wellington i izvršiti isporuku.'
+                    : 'Players may still reach Wellington and perform deliveries on their last turn.'}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="parchment-card p-5 rounded-2xl border border-cyan-500/50 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-800/50">
+                  <span className="w-8 h-8 rounded-xl bg-cyan-400 text-[#0c1f1a] font-black flex items-center justify-center font-serif-vintage text-base">
+                    3
+                  </span>
+                  <span className="text-[11px] uppercase font-bold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded">
+                    {lang === 'sr' ? 'Bodovanje' : 'Final Scoring'}
+                  </span>
+                </div>
+                <h4 className="font-bold text-base text-cyan-100 font-serif-vintage mt-2">
+                  {lang === 'sr' ? '12 Kategorija na Bloku' : '12 Scorepad Categories'}
+                </h4>
+                <p className="text-xs text-emerald-200/85 leading-relaxed mt-2">
+                  {lang === 'sr'
+                    ? 'Nakon što poslednji igrač odigra, sabiraju se poeni svih 12 kategorija na zvaničnom bloku. Pobeđuje igrač sa najviše poena. U slučaju izjednačenja, pobeda se deli!'
+                    : 'All 12 official categories are totaled. The player with the highest total score wins. Ties share victory!'}
+                </p>
+              </div>
+
+              {onNavigateToScoring && (
+                <button
+                  onClick={onNavigateToScoring}
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-[#0c1f1a] font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 cursor-pointer mt-3"
+                >
+                  <Trophy className="w-4 h-4" />
+                  <span>{lang === 'sr' ? 'Pređi na Računanje Poena' : 'Go to Scoring Pad'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
