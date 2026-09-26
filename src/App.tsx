@@ -30,55 +30,47 @@ import {
 } from 'lucide-react';
 
 export default function App() {
+  const initialConfig = parseUrlPlayerConfig();
   const [lang, setLang] = useState<Language>('sr');
-  const [activeTab, setActiveTab] = useState<'setup' | 'scoring' | 'endgame' | 'rules' | 'solo' | 'history'>('setup');
+  const [activeTab, setActiveTab] = useState<'setup' | 'scoring' | 'endgame' | 'rules' | 'solo' | 'history'>(
+    () => (initialConfig?.tab as any) || 'setup'
+  );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [urlToast, setUrlToast] = useState<string | null>(null);
-  const [urlConfig, setUrlConfig] = useState<ParsedUrlGameConfig | null>(null);
+  const [urlConfig, setUrlConfig] = useState<ParsedUrlGameConfig | null>(() => initialConfig);
 
   // Check URL query params on initial load
   useEffect(() => {
-    const config = parseUrlPlayerConfig();
-    if (config) {
-      setUrlConfig(config);
+    if (initialConfig?.players && initialConfig.players.length > 0) {
+      const loadedPlayers: PlayerScoreData[] = initialConfig.players.map((p, idx) => ({
+        id: `player-url-${idx}-${Date.now()}`,
+        name: p.name,
+        color: p.color,
+        cat1_money: 0,
+        cat2_privateBuildingsVP: 0,
+        cat3_tradingPostsVP: 0,
+        cat4_harboursVP: 0,
+        cat5_pathfinderVP: 0,
+        cat6_hazardsAndBonusTilesVP: 0,
+        cat7_deckCardsVP: 0,
+        cat8_objectiveCardsVP: 0,
+        cat9_harbourmastersVP: 0,
+        cat10_handLimitDiscVP: 0,
+        cat11_workersAndStorehousesVP: 0,
+        cat12_endGameTokenVP: 0,
+        totalScore: 0,
+      }));
 
-      // Check if tab is requested in URL
-      if (config.tab) {
-        setActiveTab(config.tab as any);
-      }
+      localStorage.setItem('gwt_nz_current_scoring', JSON.stringify(loadedPlayers));
 
-      // Check if players were provided in URL
-      if (config.players && config.players.length > 0) {
-        const loadedPlayers: PlayerScoreData[] = config.players.map((p, idx) => ({
-          id: `player-url-${idx}-${Date.now()}`,
-          name: p.name,
-          color: p.color,
-          cat1_money: 0,
-          cat2_privateBuildingsVP: 0,
-          cat3_tradingPostsVP: 0,
-          cat4_harboursVP: 0,
-          cat5_pathfinderVP: 0,
-          cat6_hazardsAndBonusTilesVP: 0,
-          cat7_deckCardsVP: 0,
-          cat8_objectiveCardsVP: 0,
-          cat9_harbourmastersVP: 0,
-          cat10_handLimitDiscVP: 0,
-          cat11_workersAndStorehousesVP: 0,
-          cat12_endGameTokenVP: 0,
-          totalScore: 0,
-        }));
+      const namesList = initialConfig.players.map((p) => `${p.name} (${p.color})`).join(', ');
+      setUrlToast(
+        lang === 'sr'
+          ? `Učitana konfiguracija za ${initialConfig.players.length} igrača iz linka: ${namesList}`
+          : `Loaded config for ${initialConfig.players.length} players from URL: ${namesList}`
+      );
 
-        localStorage.setItem('gwt_nz_current_scoring', JSON.stringify(loadedPlayers));
-
-        const namesList = config.players.map((p) => `${p.name} (${p.color})`).join(', ');
-        setUrlToast(
-          lang === 'sr'
-            ? `Učitana konfiguracija za ${config.players.length} igrača iz linka: ${namesList}`
-            : `Loaded config for ${config.players.length} players from URL: ${namesList}`
-        );
-
-        setTimeout(() => setUrlToast(null), 6000);
-      }
+      setTimeout(() => setUrlToast(null), 6000);
     }
   }, []);
 
@@ -266,6 +258,7 @@ export default function App() {
           <SetupView
             lang={lang}
             initialPlayerCount={(urlConfig?.playerCount as any) || undefined}
+            urlPlayers={urlConfig?.players}
             onNavigateToScoring={() => setActiveTab('scoring')}
           />
         )}

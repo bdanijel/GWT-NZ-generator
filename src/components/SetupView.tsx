@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GameSetupResult, Language, PlayerColor } from '../types/game';
 import { generateGWTNZSetup } from '../utils/setupGenerator';
+import { parseUrlPlayerConfig } from '../utils/urlParams';
 import {
   CompassIcon,
   SteeringWheelIcon,
@@ -39,16 +40,48 @@ import {
 interface SetupViewProps {
   lang: Language;
   initialPlayerCount?: 1 | 2 | 3 | 4;
+  urlPlayers?: Array<{ name: string; color: PlayerColor }>;
   onNavigateToScoring?: () => void;
 }
 
-export const SetupView: React.FC<SetupViewProps> = ({ lang, initialPlayerCount, onNavigateToScoring }) => {
-  const [playerCount, setPlayerCount] = useState<1 | 2 | 3 | 4>(initialPlayerCount || 3);
+export const SetupView: React.FC<SetupViewProps> = ({
+  lang,
+  initialPlayerCount,
+  urlPlayers,
+  onNavigateToScoring,
+}) => {
+  // Determine effective player count from prop or directly from URL
+  const effectiveCount = useMemo(() => {
+    if (initialPlayerCount && initialPlayerCount >= 1 && initialPlayerCount <= 4) {
+      return initialPlayerCount as 1 | 2 | 3 | 4;
+    }
+    const parsed = parseUrlPlayerConfig();
+    if (parsed?.playerCount && parsed.playerCount >= 1 && parsed.playerCount <= 4) {
+      return parsed.playerCount as 1 | 2 | 3 | 4;
+    }
+    return 3;
+  }, [initialPlayerCount]);
+
+  const effectivePlayers = useMemo(() => {
+    if (urlPlayers && urlPlayers.length > 0) return urlPlayers;
+    const parsed = parseUrlPlayerConfig();
+    if (parsed?.players && parsed.players.length > 0) return parsed.players;
+    return undefined;
+  }, [urlPlayers]);
+
+  const [playerCount, setPlayerCount] = useState<1 | 2 | 3 | 4>(effectiveCount);
   const [randomNeutral, setRandomNeutral] = useState<boolean>(false);
   const [randomPrivate, setRandomPrivate] = useState<boolean>(false);
+
   const [setup, setSetup] = useState<GameSetupResult>(() =>
-    generateGWTNZSetup(initialPlayerCount || 3, { randomNeutralBuildings: false, randomizePrivateBuildings: false })
+    generateGWTNZSetup(effectiveCount, {
+      randomNeutralBuildings: false,
+      randomizePrivateBuildings: false,
+      playerNames: effectivePlayers?.slice(0, effectiveCount).map((p) => p.name),
+      playerColors: effectivePlayers?.slice(0, effectiveCount).map((p) => p.color),
+    })
   );
+
   const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -60,10 +93,28 @@ export const SetupView: React.FC<SetupViewProps> = ({ lang, initialPlayerCount, 
     buildings: false,
   });
 
+  // Sync if effectiveCount or effectivePlayers changes
+  useEffect(() => {
+    if (effectiveCount && effectiveCount !== playerCount) {
+      setPlayerCount(effectiveCount);
+      setSetup(
+        generateGWTNZSetup(effectiveCount, {
+          randomNeutralBuildings: randomNeutral,
+          randomizePrivateBuildings: randomPrivate,
+          playerNames: effectivePlayers?.slice(0, effectiveCount).map((p) => p.name),
+          playerColors: effectivePlayers?.slice(0, effectiveCount).map((p) => p.color),
+        })
+      );
+      setCheckedSteps({});
+    }
+  }, [effectiveCount, effectivePlayers]);
+
   const handleGenerate = () => {
     const newSetup = generateGWTNZSetup(playerCount, {
       randomNeutralBuildings: randomNeutral,
       randomizePrivateBuildings: randomPrivate,
+      playerNames: effectivePlayers?.slice(0, playerCount).map((p) => p.name),
+      playerColors: effectivePlayers?.slice(0, playerCount).map((p) => p.color),
     });
     setSetup(newSetup);
     setCheckedSteps({});
@@ -74,6 +125,8 @@ export const SetupView: React.FC<SetupViewProps> = ({ lang, initialPlayerCount, 
     const newSetup = generateGWTNZSetup(count, {
       randomNeutralBuildings: randomNeutral,
       randomizePrivateBuildings: randomPrivate,
+      playerNames: effectivePlayers?.slice(0, count).map((p) => p.name),
+      playerColors: effectivePlayers?.slice(0, count).map((p) => p.color),
     });
     setSetup(newSetup);
     setCheckedSteps({});
